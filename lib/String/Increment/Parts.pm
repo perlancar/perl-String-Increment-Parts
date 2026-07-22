@@ -39,10 +39,12 @@ MARKDOWN
             req => 1,
             pos => 0,
             tags => ['category:input'],
+            cmdline_aliases => {s=>{}},
         },
         inc => {
             schema => 'int*',
             default => 1,
+            cmdline_aliases => {i=>{}},
         },
         indexes => {
             schema => ['array*', of=>'int*'],
@@ -54,6 +56,7 @@ MARKDOWN
         filename => {
             summary => 'Treat string as filename and do not include the extension as parts',
             schema => 'bool*',
+            cmdline_aliases => {f=>{}},
         },
         n => {
             summary => 'How many times to repeat the increment and return the result',
