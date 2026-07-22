@@ -47,12 +47,27 @@ MARKDOWN
             cmdline_aliases => {i=>{}},
         },
         indexes => {
+            summary => 'Specify indexes of parts (0 = first) to increment',
             schema => ['array*', of=>'int*'],
             default => [-1],
+            cmdline_aliases => {I=>{}},
         },
-        all_indexes => {
-            schema => 'bool*',
+        number_indexes => {
+            summary => 'Specify indexes of number parts (0 = first) to increment',
+            schema => ['array*', of=>'int*'],
+            default => [-1],
+            cmdline_aliases => {N=>{}},
         },
+        letter_indexes => {
+            summary => 'Specify indexes of letter-sequence parts (0 = first) to increment',
+            schema => ['array*', of=>'int*'],
+            default => [-1],
+            cmdline_aliases => {L=>{}},
+        },
+        #all_indexes => {
+        #    summary => 'Increment ALL parts',
+        #    schema => 'bool*',
+        #},
         filename => {
             summary => 'Treat string as filename and do not include the extension as parts',
             schema => 'bool*',
@@ -65,9 +80,9 @@ MARKDOWN
         },
     },
     args_rels => {
-        'choose_one&' => [
-            [qw/indexes all_indexes/],
-        ],
+        #'choose_one&' => [
+        #    [qw/indexes number_indexes letter_indexes/],
+        #],
     },
     result_naked => 1,
 };
@@ -78,27 +93,28 @@ sub increment_string_parts {
     my $n = $args{n} // 1;
     my $inc = $args{inc} // 1;
 
-    my $suffix;
+    my $suffix = '';
     if ($args{filename}) {
-        $string =~ s/(\.\w+)\z//;
-        $suffix = $1 // '';
-    } else {
-        $suffix = '';
+        $string =~ s/(\.\w+)\z// and $suffix = $1;
     }
 
     my @parts;
     my @parts_types;
     my @parts_indexes;
+    my @parts_number_indexes_to_indexes;
+    my @parts_letter_indexes_to_indexes;
   SPLIT: {
         while ($string =~ /(?:([A-Z]+)|([a-z]+)|([0-9]+)|([^A-Za-z0-9]+))/g) {
             if (defined($1) || defined($2)) {
                 push @parts, $1 // $2;
                 push @parts_types, 'l'; # letter sequences
                 push @parts_indexes, $#parts;
+                push @parts_letter_indexes_to_indexes, $#parts_indexes;
             } elsif (defined $3) {
                 push @parts, $3;
                 push @parts_types, 'n'; # number sequences
                 push @parts_indexes, $#parts;
+                push @parts_number_indexes_to_indexes, $#parts_indexes;
             } else {
                 push @parts, $4;
                 push @parts_types, 'o'; # other
@@ -113,6 +129,10 @@ sub increment_string_parts {
             my @indexes;
             if ($args{all_indexes}) {
                 @indexes = 0 .. $#parts_indexes;
+            } elsif ($args{number_indexes}) {
+                @indexes = map { $parts_number_indexes_to_indexes[$_] } @{ $args{number_indexes} };
+            } elsif ($args{letter_indexes}) {
+                @indexes = map { $parts_letter_indexes_to_indexes[$_] } @{ $args{letter_indexes} };
             } elsif ($args{indexes}) {
                 @indexes = @{ $args{indexes} };
             } else {
