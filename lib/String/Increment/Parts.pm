@@ -19,6 +19,20 @@ our %SPEC;
 $SPEC{increment_string_parts} = {
     v => 1.1,
     summary => 'Increment string parts (numbers or letter sequences)',
+    description => <<'MARKDOWN',
+
+This routine takes a string and splits it into a list of (uppercase letter
+sequences, lowercase letter sequences, 0-9 sequences [nonnegative integers], or
+anything in between). After that you can tell it to increment the letter/number
+sequences.
+
+This routine is handy when you want to generate a serial sequence of codes.
+
+Note that for incrementing letters, Perl's auto-increment or auto-decrement is
+used. If you instruct the function to increment by 100 (set `inc` argument to
+100), it will do so 100 times.
+
+MARKDOWN
     args => {
         string => {
             schema => 'str*',
@@ -151,22 +165,6 @@ sub increment_string_parts {
 # ABSTRACT:
 
 =head1 DESCRIPTION
-
-
-=head1 FUNCTIONS
-
-=head2 increment_string_parts
-
-This function takes a string and splits it into a list of (uppercase letter
-sequences, lowercase letter sequences, 0-9 sequences [nonnegative integers], or
-anything in between). After that you can tell it to increment the letter/number
-sequences.
-
-This function is handy when you want to generate a serial sequence of codes.
-
-Note that for incrementing letters, Perl's auto-increment or auto-decrement is
-used. If you instruct the function to increment by 100 (set `inc` argument to
-100), it will do so 100 times.
 
 
 =head1 SEE ALSO
