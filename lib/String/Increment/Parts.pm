@@ -196,4 +196,6 @@ L<String::Incremental>.
 
 Perl's auto-increment and auto-decrement documentation in L<perlop>.
 
+Previous efforts (deprecated): L<Data::Increment>, L<Data::Decrement>.
+
 =cut
