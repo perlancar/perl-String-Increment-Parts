@@ -3,6 +3,7 @@ package String::Increment::Parts;
 use 5.010001;
 use strict;
 use warnings;
+use Log::ger;
 
 # AUTHORITY
 # DATE
@@ -55,13 +56,11 @@ MARKDOWN
         number_indexes => {
             summary => 'Specify indexes of number parts (0 = first) to increment',
             schema => ['array*', of=>'int*'],
-            default => [-1],
             cmdline_aliases => {N=>{}},
         },
         letter_indexes => {
             summary => 'Specify indexes of letter-sequence parts (0 = first) to increment',
             schema => ['array*', of=>'int*'],
-            default => [-1],
             cmdline_aliases => {L=>{}},
         },
         #all_indexes => {
@@ -78,6 +77,21 @@ MARKDOWN
             schema => 'posint*',
             default => 1,
         },
+        debug => {
+            summary => 'Show debug information instead',
+            schema => ['str*', in=>[qw/show_parts show_increments/]],
+            description => <<'MARKDOWN',
+
+`show_parts` will show the parts along with their types and indexes.
+
+`show_increments` will show which part(s) will be incremented.
+
+MARKDOWN
+            cmdline_aliases => {
+                show_parts => {is_flag=>1, summary=>'Short alias for --debug=show_parts', code=>sub {$_[0]{debug} = 'show_parts'}},
+                show_increments => {is_flag=>1, summary=>'Short alias for --debug=show_parts', code=>sub {$_[0]{debug} = 'show_increments'}},
+            },
+        },
     },
     args_rels => {
         #'choose_one&' => [
@@ -89,6 +103,7 @@ MARKDOWN
 sub increment_string_parts {
     my %args = @_;
 
+    my $debug = $args{debug} // '';
     my $string = $args{string};
     my $n = $args{n} // 1;
     my $inc = $args{inc} // 1;
@@ -122,21 +137,34 @@ sub increment_string_parts {
         }
     } # SPLIT
 
+    if ($debug eq 'show_parts') {
+        return [200, "OK", [map {+{index=>$_, type=>$parts_types[$_], part=>$parts[$_]}} 0..$#parts]];
+    }
+
     my @results;
   INCREMENT: {
         for my $i (1 .. $n) {
 
             my @indexes;
             if ($args{all_indexes}) {
+                #log_trace "D1";
                 @indexes = 0 .. $#parts_indexes;
             } elsif ($args{number_indexes}) {
+                #log_trace "D2";
                 @indexes = map { $parts_number_indexes_to_indexes[$_] } @{ $args{number_indexes} };
             } elsif ($args{letter_indexes}) {
+                #log_trace "D3";
                 @indexes = map { $parts_letter_indexes_to_indexes[$_] } @{ $args{letter_indexes} };
             } elsif ($args{indexes}) {
+                #log_trace "D4";
                 @indexes = @{ $args{indexes} };
             } else {
-                @indexes = -1;
+                #log_trace "D5";
+                @indexes = (-1);
+            }
+
+            if ($debug eq 'show_increments') {
+                return [200, "OK", [map {+{number=>$_, index=>$indexes[$_], part=>$parts[ $indexes[$_] ]}} 0..$#indexes]];
             }
 
             my %incremented_indexes;
